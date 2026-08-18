@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Configurable informational line under each device in the Configuration tab
+  (`device_info`), with a `config_device_info` theme style.
+- Default keybindings for adjusting volume by 10%: Ctrl+h/Ctrl+l and
+  Ctrl+Left/Ctrl+Right.
+
 ## [0.11.0] - 2026-06-04
 
 ### Added

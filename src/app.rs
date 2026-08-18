@@ -285,6 +285,7 @@ impl<'a> App<'a> {
                     self.wirehose,
                     &self.state,
                     &self.config.names,
+                    &self.config.device_info,
                     &self.config.filters,
                 );
             }
@@ -918,8 +919,13 @@ mod tests {
         for event in events {
             event.handle(&mut app).unwrap();
         }
-        app.view =
-            View::from(wirehose, &app.state, &app.config.names, &Vec::new());
+        app.view = View::from(
+            wirehose,
+            &app.state,
+            &app.config.names,
+            &app.config.device_info,
+            &Vec::new(),
+        );
 
         // Select the node
         Action::SelectObject(object_id).handle(&mut app).unwrap();

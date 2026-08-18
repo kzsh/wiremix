@@ -101,31 +101,33 @@ less-intuitive mouse controls are:
 
 ### Default Keyboard Bindings
 
-| Input         | Action                  |
-| ------------- | ----------------------- |
-| q             | Quit                    |
-| m             | Toggle mute             |
-| d             | Set default source/sink |
-| l/Right arrow | Increment volume        |
-| h/Left arrow  | Decrement volume        |
-| Enter/c       | Open dropdown or choose |
-| Esc           | Cancel dropdown         |
-| j/Down arrow  | Move down               |
-| k/Up arrow    | Move up                 |
-| H/Shift+Tab   | Select previous tab     |
-| L/Tab         | Select next tab         |
-| ` (Backtick)  | Set volume 0%           |
-| 1             | Set volume 10%          |
-| 2             | Set volume 20%          |
-| 3             | Set volume 30%          |
-| 4             | Set volume 40%          |
-| 5             | Set volume 50%          |
-| 6             | Set volume 60%          |
-| 7             | Set volume 70%          |
-| 8             | Set volume 80%          |
-| 9             | Set volume 90%          |
-| 0             | Set volume 100%         |
-| ?             | Toggle help screen      |
+| Input                   | Action                  |
+| ----------------------- | ----------------------- |
+| q                       | Quit                    |
+| m                       | Toggle mute             |
+| d                       | Set default source/sink |
+| l/Right arrow           | Increment volume        |
+| h/Left arrow            | Decrement volume        |
+| Ctrl+l/Ctrl+Right arrow | Increase volume by 10%  |
+| Ctrl+h/Ctrl+Left arrow  | Decrease volume by 10%  |
+| Enter/c                 | Open dropdown or choose |
+| Esc                     | Cancel dropdown         |
+| j/Down arrow            | Move down               |
+| k/Up arrow              | Move up                 |
+| H/Shift+Tab             | Select previous tab     |
+| L/Tab                   | Select next tab         |
+| ` (Backtick)            | Set volume 0%           |
+| 1                       | Set volume 10%          |
+| 2                       | Set volume 20%          |
+| 3                       | Set volume 30%          |
+| 4                       | Set volume 40%          |
+| 5                       | Set volume 50%          |
+| 6                       | Set volume 60%          |
+| 7                       | Set volume 70%          |
+| 8                       | Set volume 80%          |
+| 9                       | Set volume 90%          |
+| 0                       | Set volume 100%         |
+| ?                       | Toggle help screen      |
 
 ## Configuration
 
@@ -307,4 +309,27 @@ templates = [ "{node:node.name}" ]
 types = [ "stream" ]
 matches = [ { "node.name" = "mpv" } ]
 templates = [ "{node:media.name}" ]
+```
+
+### Device Info
+
+Each device in the Configuration tab can display an informational line between
+its name and its selected profile. It is generated from the device's PipeWire
+properties using the same template syntax as [Names](#names), except that only
+device properties are available.
+
+The default is:
+
+```toml
+device_info = [ "{device:device.api} ({device:device.bus})", "{device:device.api}" ]
+```
+
+Templates are tried in order and the first one which fully resolves is used. If
+none of them resolve, no line is displayed. Set `device_info = [ ]` to always
+leave it empty.
+
+To show the ALSA card instead, for example:
+
+```toml
+device_info = [ "{device:alsa.card_name}" ]
 ```

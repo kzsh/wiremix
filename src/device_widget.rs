@@ -124,19 +124,28 @@ impl StatefulWidget for DeviceWidget<'_> {
             .direction(Direction::Vertical)
             .constraints([
                 Constraint::Length(1), // title_area
+                Constraint::Length(1), // info_area
                 Constraint::Length(1), // target_area
             ])
-            .spacing(1)
             .flex(Flex::Legacy)
             .split(node_area);
         let title_area = layout[0];
-        let target_area = layout[1];
+        let info_area = layout[1];
+        let target_area = layout[2];
 
         Line::from(vec![
             Span::from("   "),
             Span::styled(&self.device.title, self.config.theme.config_device),
         ])
         .render(title_area, buf);
+
+        if let Some(info) = &self.device.info {
+            Line::from(vec![
+                Span::from("    "),
+                Span::styled(info, self.config.theme.config_device_info),
+            ])
+            .render(info_area, buf);
+        }
 
         Line::from(vec![
             Span::from("    "),

@@ -1,6 +1,6 @@
 # This file documents wiremix's configuration file. It is also itself a wiremix
 # configuration file in which wiremix's default configuration is specified.
-# 
+#
 # It is recommended to start with an empty configuration file and to use this
 # file only as a reference. Anything specified in the configuration file will
 # be merged with wiremix's defaults.
@@ -43,6 +43,16 @@ enforce_max_volume = false
 
 # If true, only monitor peak levels of visible nodes
 lazy_capture = false
+
+# Informational line displayed under each device in the Configuration tab.
+#
+# This is an array of templates using the same syntax as the templates in the
+# Names section, except that only device properties are available. The first
+# template which can be fully resolved is used. If none of them resolve,
+# nothing is displayed.
+#
+# Set to [ ] to disable.
+device_info = [ "{device:device.api} ({device:device.bus})", "{device:device.api}" ]
 
 
 # Keybindings
@@ -90,6 +100,12 @@ keybindings = [
  # Decrease the volume of the selected item by 1%
  { key = { Char = "h" }, action = { SetRelativeVolume = -0.01 } },
  { key = "Left", action = { SetRelativeVolume = -0.01 } },
+ # Increase the volume of the selected item by 10%
+ { key = { Char = "l" }, modifiers = "CONTROL", action = { SetRelativeVolume = 0.10 } },
+ { key = "Right", modifiers = "CONTROL", action = { SetRelativeVolume = 0.10 } },
+ # Decrease the volume of the selected item by 10%
+ { key = { Char = "h" }, modifiers = "CONTROL", action = { SetRelativeVolume = -0.10 } },
+ { key = "Left", modifiers = "CONTROL", action = { SetRelativeVolume = -0.10 } },
  # Open a dropdown for the selected item or chose an item in the dropdown
  { key = { Char = "c" }, action = "ActivateDropdown" },
  { key = "Enter", action = "ActivateDropdown" },
@@ -334,6 +350,8 @@ meter_center_inactive = { fg = "DarkGray" }
 meter_center_active = { fg = "LightGreen" }
 # The name of a device in the Configuration tab
 config_device = { }
+# The device_info line in the Configuration tab
+config_device_info = { fg = "DarkGray" }
 # The name of the selected profile in the Configuration tab
 config_profile = { }
 # Dropdown marker next to the profiles in the Configuration tab
@@ -451,6 +469,7 @@ meter_overload = { add_modifier = "BOLD" }
 meter_center_inactive = { add_modifier = "DIM" }
 meter_center_active = { add_modifier = "BOLD" }
 config_device = { }
+config_device_info = { add_modifier = "DIM" }
 config_profile = { }
 dropdown_icon = { }
 dropdown_border = { }
@@ -480,6 +499,7 @@ meter_overload = { }
 meter_center_inactive = { }
 meter_center_active = { }
 config_device = { }
+config_device_info = { }
 config_profile = { }
 dropdown_icon = { }
 dropdown_border = { }

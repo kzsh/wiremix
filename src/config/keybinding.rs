@@ -22,6 +22,22 @@ impl Keybinding {
             (event(KeyCode::Right), Action::SetRelativeVolume(0.01)),
             (event(KeyCode::Char('h')), Action::SetRelativeVolume(-0.01)),
             (event(KeyCode::Left), Action::SetRelativeVolume(-0.01)),
+            (
+                KeyEvent::new(KeyCode::Char('l'), KeyModifiers::CONTROL),
+                Action::SetRelativeVolume(0.10),
+            ),
+            (
+                KeyEvent::new(KeyCode::Right, KeyModifiers::CONTROL),
+                Action::SetRelativeVolume(0.10),
+            ),
+            (
+                KeyEvent::new(KeyCode::Char('h'), KeyModifiers::CONTROL),
+                Action::SetRelativeVolume(-0.10),
+            ),
+            (
+                KeyEvent::new(KeyCode::Left, KeyModifiers::CONTROL),
+                Action::SetRelativeVolume(-0.10),
+            ),
             (event(KeyCode::Esc), Action::CloseDropdown),
             (event(KeyCode::Char('c')), Action::ActivateDropdown),
             (event(KeyCode::Enter), Action::ActivateDropdown),

@@ -642,6 +642,7 @@ mod tests {
             &state,
             &config::Names::default(),
             &Vec::new(),
+            &Vec::new(),
         );
 
         let height = NodeWidget::height() + NodeWidget::spacing();
@@ -667,6 +668,7 @@ mod tests {
             &wirehose,
             &state,
             &config::Names::default(),
+            &Vec::new(),
             &Vec::new(),
         );
 
@@ -698,6 +700,7 @@ mod tests {
             &wirehose,
             &state,
             &config::Names::default(),
+            &Vec::new(),
             &Vec::new(),
         );
 
@@ -755,6 +758,7 @@ mod tests {
             &wirehose,
             &state,
             &config::Names::default(),
+            &Vec::new(),
             &Vec::new(),
         );
 
@@ -815,6 +819,7 @@ mod tests {
             &state,
             &config::Names::default(),
             &Vec::new(),
+            &Vec::new(),
         );
 
         let height = NodeWidget::height() + NodeWidget::spacing();
@@ -866,6 +871,7 @@ mod tests {
             &wirehose,
             &state,
             &config::Names::default(),
+            &Vec::new(),
             &Vec::new(),
         );
 
@@ -935,6 +941,7 @@ mod tests {
             &wirehose,
             &state,
             &config::Names::default(),
+            &Vec::new(),
             &Vec::new(),
         );
 
@@ -1028,6 +1035,7 @@ mod tests {
             &state,
             &config::Names::default(),
             &Vec::new(),
+            &Vec::new(),
         );
 
         let height = NodeWidget::height() + NodeWidget::spacing();
@@ -1071,6 +1079,7 @@ mod tests {
             &wirehose,
             &state,
             &config::Names::default(),
+            &Vec::new(),
             &Vec::new(),
         );
 
@@ -1116,6 +1125,7 @@ mod tests {
             &wirehose,
             &state,
             &config::Names::default(),
+            &Vec::new(),
             &Vec::new(),
         );
 
