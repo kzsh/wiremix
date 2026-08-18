@@ -28,6 +28,7 @@ pub struct ThemeOverlay {
     meter_center_inactive: Option<StyleDef>,
     meter_center_active: Option<StyleDef>,
     config_device: Option<StyleDef>,
+    config_device_info: Option<StyleDef>,
     config_profile: Option<StyleDef>,
     dropdown_icon: Option<StyleDef>,
     dropdown_border: Option<StyleDef>,
@@ -107,6 +108,7 @@ impl TryFrom<ThemeOverlay> for Theme {
         set!(meter_center_inactive);
         set!(meter_center_active);
         set!(config_device);
+        set!(config_device_info);
         set!(config_profile);
         set!(dropdown_icon);
         set!(dropdown_border);
@@ -142,6 +144,7 @@ impl Default for Theme {
             meter_center_inactive: Style::default().fg(Color::DarkGray),
             meter_center_active: Style::default().fg(Color::LightGreen),
             config_device: Style::default(),
+            config_device_info: Style::default().fg(Color::DarkGray),
             config_profile: Style::default(),
             dropdown_icon: Style::default(),
             dropdown_border: Style::default(),
@@ -186,6 +189,7 @@ impl Theme {
             meter_center_inactive: Style::default().add_modifier(Modifier::DIM),
             meter_center_active: Style::default().add_modifier(Modifier::BOLD),
             config_device: Style::default(),
+            config_device_info: Style::default().add_modifier(Modifier::DIM),
             config_profile: Style::default(),
             dropdown_icon: Style::default(),
             dropdown_border: Style::default(),
@@ -219,6 +223,7 @@ impl Theme {
             meter_center_inactive: Style::default(),
             meter_center_active: Style::default(),
             config_device: Style::default(),
+            config_device_info: Style::default(),
             config_profile: Style::default(),
             dropdown_icon: Style::default(),
             dropdown_border: Style::default(),

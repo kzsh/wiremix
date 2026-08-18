@@ -25,6 +25,7 @@ use toml;
 
 use crate::app::Action;
 pub use crate::config::matching::MatchCondition;
+pub use crate::config::name_template::NameTemplate;
 use crate::opt::Opt;
 
 #[derive(Debug)]
@@ -41,6 +42,7 @@ pub struct Config {
     pub keybindings: HashMap<KeyEvent, Action>,
     pub help: help::Help,
     pub names: Names,
+    pub device_info: Vec<NameTemplate>,
     pub tab: usize,
     pub tabs: Vec<TabKind>,
     pub lazy_capture: bool,
@@ -75,6 +77,8 @@ struct ConfigFile {
     keybindings: HashMap<KeyEvent, Action>,
     #[serde(default)]
     names: Names,
+    #[serde(default = "default_device_info")]
+    device_info: Vec<NameTemplate>,
     #[serde(
         default = "CharSet::defaults",
         deserialize_with = "CharSet::merge"
@@ -192,6 +196,7 @@ pub struct Theme {
     pub meter_center_inactive: Style,
     pub meter_center_active: Style,
     pub config_device: Style,
+    pub config_device_info: Style,
     pub config_profile: Style,
     pub dropdown_icon: Style,
     pub dropdown_border: Style,
@@ -268,6 +273,16 @@ fn default_enforce_max_volume() -> bool {
 
 fn default_lazy_capture() -> bool {
     false
+}
+
+/// Templates for the informational line under each device in the
+/// Configuration tab. The first template which fully resolves is used, and if
+/// none resolve, no line is displayed.
+fn default_device_info() -> Vec<NameTemplate> {
+    vec![
+        "{device:device.api} ({device:device.bus})".parse().unwrap(),
+        "{device:device.api}".parse().unwrap(),
+    ]
 }
 
 impl ConfigFile {
@@ -393,6 +408,7 @@ impl TryFrom<ConfigFile> for Config {
             keybindings: config_file.keybindings,
             help,
             names: config_file.names,
+            device_info: config_file.device_info,
             tab,
             tabs: config_file.tabs,
             lazy_capture: config_file.lazy_capture,
@@ -474,6 +490,7 @@ pub mod strict {
         #[serde(deserialize_with = "keybindings")]
         keybindings: HashMap<KeyEvent, Action>,
         names: Names,
+        device_info: Vec<NameTemplate>,
         #[serde(deserialize_with = "charsets")]
         char_sets: HashMap<String, CharSet>,
         #[serde(deserialize_with = "themes")]
@@ -497,6 +514,7 @@ pub mod strict {
                 enforce_max_volume: strict.enforce_max_volume,
                 keybindings: strict.keybindings,
                 names: strict.names,
+                device_info: strict.device_info,
                 char_sets: strict.char_sets,
                 themes: strict.themes,
                 tab: strict.tab,

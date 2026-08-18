@@ -115,6 +115,9 @@ pub struct Device {
     pub object_id: ObjectId,
     pub object_serial: u64,
     pub title: String,
+    /// Informational line rendered under the title, from the device_info
+    /// templates. None if no template could be resolved.
+    pub info: Option<String>,
 
     pub profiles: Vec<(Target, String)>,
 
@@ -356,10 +359,15 @@ impl Device {
         state: &state::State,
         device: &state::Device,
         names: &config::Names,
+        device_info: &[config::NameTemplate],
     ) -> Option<Device> {
         let object_id = device.object_id;
 
         let title = names.resolve(state, device)?;
+
+        let info = device_info.iter().find_map(|template| {
+            template.render(|key| device.resolve_key(state, key))
+        });
 
         let mut profiles: Vec<_> = device
             .profiles
@@ -394,6 +402,7 @@ impl Device {
             object_id,
             object_serial,
             title,
+            info,
             profiles,
             target_title,
             target,
@@ -471,6 +480,7 @@ impl<'a> View<'a> {
         wirehose: &'a dyn CommandSender,
         state: &state::State,
         names: &config::Names,
+        device_info: &[config::NameTemplate],
         filters: &[config::MatchCondition],
     ) -> View<'a> {
         let default_sink_name = default_for(state, "default.audio.sink");
@@ -565,7 +575,9 @@ impl<'a> View<'a> {
                     state.devices.get(&device.object_id),
                 )
             })
-            .filter_map(|device| Device::from(state, device, names))
+            .filter_map(|device| {
+                Device::from(state, device, names, device_info)
+            })
             .map(|device| (device.object_id, device))
             .collect();
 
@@ -919,5 +931,138 @@ impl<'a> View<'a> {
             .unwrap_or(0);
 
         Some((targets, selected_position))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::config::NameTemplate;
+    use crate::mock;
+    use crate::wirehose::{PropertyStore, StateEvent};
+
+    /// Builds a state containing a single device with one profile.
+    fn device_state(props: PropertyStore) -> (state::State, ObjectId) {
+        let mut state = state::State::default();
+        let object_id = ObjectId::from_raw_id(1);
+
+        let events = vec![
+            StateEvent::DeviceProperties { object_id, props },
+            StateEvent::DeviceEnumProfile {
+                object_id,
+                index: 1,
+                description: String::from("Profile"),
+                available: true,
+                classes: Vec::new(),
+            },
+            StateEvent::DeviceProfile {
+                object_id,
+                index: 1,
+            },
+        ];
+        for event in events {
+            state.update(event);
+        }
+
+        (state, object_id)
+    }
+
+    fn device_props() -> PropertyStore {
+        let mut props = PropertyStore::default();
+        props.set_object_serial(1);
+        props.set_device_name(String::from("Device name"));
+        props
+    }
+
+    fn templates(strings: &[&str]) -> Vec<NameTemplate> {
+        strings
+            .iter()
+            .map(|s| s.parse::<NameTemplate>().unwrap())
+            .collect()
+    }
+
+    fn device_info(
+        state: &state::State,
+        object_id: ObjectId,
+        device_info: &[NameTemplate],
+    ) -> Option<String> {
+        let wirehose = mock::WirehoseHandle::default();
+        let view = View::from(
+            &wirehose,
+            state,
+            &config::Names::default(),
+            device_info,
+            &Vec::new(),
+        );
+
+        view.devices.get(&object_id)?.info.clone()
+    }
+
+    #[test]
+    fn device_info_uses_first_resolvable_template() {
+        let mut props = device_props();
+        props.set_device_api(String::from("alsa"));
+        props.set_device_bus(String::from("usb"));
+        let (state, object_id) = device_state(props);
+
+        assert_eq!(
+            device_info(
+                &state,
+                object_id,
+                &templates(&[
+                    "{device:device.api} ({device:device.bus})",
+                    "{device:device.api}",
+                ]),
+            ),
+            Some(String::from("alsa (usb)"))
+        );
+    }
+
+    #[test]
+    fn device_info_falls_back_on_missing_properties() {
+        let mut props = device_props();
+        props.set_device_api(String::from("bluez5"));
+        let (state, object_id) = device_state(props);
+
+        assert_eq!(
+            device_info(
+                &state,
+                object_id,
+                &templates(&[
+                    "{device:device.api} ({device:device.bus})",
+                    "{device:device.api}",
+                ]),
+            ),
+            Some(String::from("bluez5"))
+        );
+    }
+
+    #[test]
+    fn device_info_is_none_when_nothing_resolves() {
+        let (state, object_id) = device_state(device_props());
+        let templates = templates(&["{device:device.api}"]);
+
+        assert!(device_info(&state, object_id, &templates).is_none());
+    }
+
+    #[test]
+    fn device_info_is_none_when_unconfigured() {
+        let mut props = device_props();
+        props.set_device_api(String::from("alsa"));
+        let (state, object_id) = device_state(props);
+
+        assert!(device_info(&state, object_id, &[]).is_none());
+    }
+
+    #[test]
+    fn device_info_ignores_node_and_client_keys() {
+        let mut props = device_props();
+        props.set_device_api(String::from("alsa"));
+        let (state, object_id) = device_state(props);
+        let templates =
+            templates(&["{node:node.name}", "{client:application.name}"]);
+
+        assert!(device_info(&state, object_id, &templates).is_none());
     }
 }
