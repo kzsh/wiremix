@@ -51,7 +51,7 @@ impl<'a> NodeWidget<'a> {
 
     /// Height of a full node display.
     pub fn height() -> u16 {
-        3
+        2
     }
 
     /// Spacing between nodes
@@ -143,14 +143,13 @@ impl StatefulWidget for NodeWidget<'_> {
             .render(selector_area, buf);
 
         // Split the main node area into a header line and a line for the
-        // volume bar and peak meter.
+        // volume bar.
         let layout = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
                 Constraint::Length(1), // header_area
                 Constraint::Length(1), // bar_area
             ])
-            .spacing(1)
             .flex(Flex::Legacy)
             .split(node_area);
         let header_area = layout[0];
@@ -162,40 +161,23 @@ impl StatefulWidget for NodeWidget<'_> {
             mouse_areas,
         );
 
-        // Render volume bar and (if enabled) peak meter
-        let volume = VolumeWidget::new(self.config, self.node);
-        if self.config.peaks == Peaks::Off {
-            let layout = Layout::default()
-                .direction(Direction::Horizontal)
-                .constraints(vec![
-                    Constraint::Length(2), // _padding
-                    Constraint::Fill(9),   // volume_area
-                    Constraint::Fill(1),   // _padding
-                ])
-                .split(bar_area);
-            // index 0 is _padding
-            let volume_area = layout[1];
+        // Render volume bar. The peak meter renders on the header line.
+        let layout = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(vec![
+                Constraint::Length(2), // _padding
+                Constraint::Fill(9),   // volume_area
+                Constraint::Fill(1),   // _padding
+            ])
+            .split(bar_area);
+        // index 0 is _padding
+        let volume_area = layout[1];
 
-            volume.render(volume_area, buf, mouse_areas);
-        } else {
-            let layout = Layout::default()
-                .direction(Direction::Horizontal)
-                .constraints(vec![
-                    Constraint::Length(2), // _padding
-                    Constraint::Fill(4),   // volume_area
-                    Constraint::Fill(1),   // _padding
-                    Constraint::Fill(4),   // meter_area
-                    Constraint::Fill(1),   // _padding
-                ])
-                .split(bar_area);
-            // index 0 is _padding
-            let volume_area = layout[1];
-            // index 2 is _padding
-            let meter_area = layout[3];
-
-            volume.render(volume_area, buf, mouse_areas);
-            MeterWidget::new(self.config, self.node).render(meter_area, buf);
-        }
+        VolumeWidget::new(self.config, self.node).render(
+            volume_area,
+            buf,
+            mouse_areas,
+        );
     }
 }
 
@@ -212,26 +194,28 @@ impl<'a> SelectorWidget<'a> {
 
 impl Widget for SelectorWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        if self.selected {
-            // Render and indication that this is the selected node.
-            let rows = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints([
-                    Constraint::Length(1),
-                    Constraint::Length(1),
-                    Constraint::Length(1),
-                ])
-                .split(area);
+        if !self.selected {
+            return;
+        }
 
-            let style = self.config.theme.selector;
+        let style = self.config.theme.selector;
+        let char_set = &self.config.char_set;
+
+        // The cap symbols only read as caps with a middle row between them
+        let caps = area.height > 2;
+
+        for row in 0..area.height {
+            let symbol = if caps && row == 0 {
+                &char_set.selector_top
+            } else if caps && row + 1 == area.height {
+                &char_set.selector_bottom
+            } else {
+                &char_set.selector_middle
+            };
 
             // Render the selected node indicator
-            Span::styled(&self.config.char_set.selector_top, style)
-                .render(rows[0], buf);
-            Span::styled(&self.config.char_set.selector_middle, style)
-                .render(rows[1], buf);
-            Span::styled(&self.config.char_set.selector_bottom, style)
-                .render(rows[2], buf);
+            Span::styled(symbol, style)
+                .render(Rect::new(area.x, area.y + row, 1, 1), buf);
         }
     }
 }
@@ -320,7 +304,15 @@ impl StatefulWidget for HeaderWidget<'_> {
         let mut target_area = layout[1];
 
         let title_line = self.title_line();
-        if title_line.width() > title_area.width as usize {
+
+        // Where the title ends. The meter renders in whatever the title and
+        // target leave it.
+        let title_width = u16::try_from(title_line.width()).unwrap_or(u16::MAX);
+        let mut title_end = title_area
+            .x
+            .saturating_add(title_width.min(title_area.width));
+
+        if title_width > title_area.width {
             // It doesn't fit
             let layout = Layout::default()
                 .direction(Direction::Horizontal)
@@ -339,6 +331,8 @@ impl StatefulWidget for HeaderWidget<'_> {
 
             Span::styled("...", self.config.theme.node_title)
                 .render(ellipses_area, buf);
+
+            title_end = ellipses_area.right();
         }
         let (title_area, target_area) = (title_area, target_area);
 
@@ -356,6 +350,22 @@ impl StatefulWidget for HeaderWidget<'_> {
         ));
 
         title_line.render(title_area, buf);
+
+        if self.config.peaks != Peaks::Off {
+            // One space between the meter and its neighbours on each side
+            let meter_area = Rect::new(
+                title_end.saturating_add(1),
+                area.y,
+                target_area.x.saturating_sub(2 + title_end),
+                1,
+            );
+
+            // Narrower than this and there's nothing worth rendering
+            if meter_area.width >= 3 {
+                MeterWidget::new(self.config, self.node)
+                    .render(meter_area, buf);
+            }
+        }
     }
 }
 
